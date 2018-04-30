@@ -31,8 +31,10 @@
 
 ;; Custom translation functions for each attribute.
 ;; %1 is original property value, %2 is the new value.
-;; As such, #(do %2) just replaces old value.
-;; This list must match the above list.
+;; Examples:
+;;    #(do %2)              ;; just replaces old value.
+;;    #(.parse js/JSON %2)  ;; parses JSON into JS object
+;; This list's keys must match the 'attrs' list.
 (def fns {"some-text" #(do %2)})
 
 ;; events:  "goto" :: event detail is page title to go to.
