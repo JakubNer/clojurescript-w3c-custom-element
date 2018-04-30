@@ -1,27 +1,56 @@
 (ns kundel.element
   (:require
+    [goog.object :as go]
     [reagent.core :as r]
-    [lucuma.core :as lc]))
+    [kundel.component :as c]))
 
-(defn fire-event [this]
-  (let [some-text (js->clj (.-some-text this))                        ;; get property from custom element
-        event (.createEvent js/document "Event")]                     ;; new event to fire from custom element
-    (.log js/console "created event :: " event)
-    (.log js/console "against element :: " this)
-    (.initEvent event "meh" true true)
-    (aset event "detail" (str "Text added by event to " some-text))   ;; add some detail text to event
-    (.dispatchEvent this event)))                                     ;; fire event
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; w3c custom element registration and callback handlers.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn my-app [this]                                                   ;; top level Reagent render
-  [:div
-    [:h1 {:on-click #(fire-event this)} "CLICK ME"]                   ;; call fire-event (above) on click
-    [:p "Click above."]])
+;; Registration occurs by calling the exported 'register' below.
 
-(lc/defcustomelement my-element                                       ;; instrument custom element using lucuma
-                  :on-created #()
-                  :on-attached #(r/render [my-app %] %)               ;; attach top level Reagent component (above)
-                  :properties {:some-text "defalult"})                ;; expose a property
+;; The registered element will have the following name:
+(def element-name "my-element")
 
-(defn ^:export register []                                            ;; export method to register our custom element
-  (lc/register my-element))
+;; The registered element works with the following attributes.
+;;
+;; NOTE:
+;;   A reagent atom is created for each of the component's attributes.
+;;
+;;   The reagent component render function gets 'element' and 'attrs'
+;;   properties.  The 'attrs' property contains the ratom with these
+;;   element properties.  To read the value in the reagent component:
+;;
+;;      @(get attrs "some-text")
+;;
+;; Modify these to suite your element:
+(def attrs {"some-text" (r/atom nil)})
 
+
+
+
+;; No need to modify anything below
+
+(defn created [this]
+  (doseq [keyval attrs]
+    (reset! (val keyval) (.getAttribute this (key keyval))))
+  (r/render [c/render this attrs] this))      ;; attach reagent component
+
+(defn attached [this]) ;; not wired into reagent component
+
+(defn detached [this]) ;; not wired into reagent component
+
+(defn changed [this property-name old-value new-value]
+  (reset! (get attrs property-name) (.getAttribute this property-name)))
+
+;; register the w3c custom element.
+(defn ^:export register []
+  (when (.-registerElement js/document)
+    (let [proto (.create js/Object (.-prototype js/HTMLElement))
+          proto' (go/create "createdCallback" #(this-as this (created this))
+                            "attachedCallback" #(this-as this (attached this))
+                            "detachedCallback" #(this-as this (detached this))
+                            "attributeChangedCallback" #(this-as this (changed this %1 %2 %3)))]
+      (go/extend proto proto')
+      (.registerElement js/document element-name #js{"prototype" proto}))))

@@ -2,11 +2,14 @@
     <body>
         <script src="js/element.js"></script>                               <!-- load custom element script -->
         <script>kundel.element.register()</script>                          <!-- register custom element -->
-        <my-element id="meh-catcher" some-text="foo bar baz"></my-element>  <!-- use custom element -->
+        <my-element id="my-event-catcher" some-text="foo bar baz"></my-element>  <!-- use custom element -->
     </body>
     <script>
-        var catcher = document.getElementById('meh-catcher');               /* listen to custom element event */
+        var catcher = document.getElementById('my-event-catcher');               /* listen to custom element event */
         console.log("catching on :: " + catcher);
-        catcher.addEventListener('meh', function(e) {alert("custom listener :: " + e.detail);}, true);
+        catcher.addEventListener('my-event', function(e) {
+                alert("custom listener :: " + e.detail);
+                catcher.setAttribute('some-text', "new value");
+            }, true);
     </script>
 </html>
