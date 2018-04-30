@@ -24,17 +24,27 @@
 ;;
 ;;      @(get attrs "some-text")
 ;;
+;;   Note that each 'attrs' has to have a corresponding 'fns' entry below.
+;;
 ;; Modify these to suite your element:
 (def attrs {"some-text" (r/atom nil)})
 
+;; Custom translation functions for each attribute.
+;; %1 is original property value, %2 is the new value.
+;; As such, #(do %2) just replaces old value.
+;; This list must match the above list.
+(def fns {"some-text" #(do %2)})
+
+;; events:  "goto" :: event detail is page title to go to.
 
 
 
-;; No need to modify anything below
+
+;; NO NEED TO MODIFY ANYTHING BELOW
 
 (defn created [this]
   (doseq [keyval attrs]
-    (reset! (val keyval) (.getAttribute this (key keyval))))
+    (swap! (val keyval) (get fns (key keyval)) (.getAttribute this (key keyval))))
   (r/render [c/render this attrs] this))      ;; attach reagent component
 
 (defn attached [this]) ;; not wired into reagent component
@@ -42,7 +52,7 @@
 (defn detached [this]) ;; not wired into reagent component
 
 (defn changed [this property-name old-value new-value]
-  (reset! (get attrs property-name) (.getAttribute this property-name)))
+  (swap! (get attrs property-name) (get fns property-name) (.getAttribute this property-name)))
 
 ;; register the w3c custom element.
 (defn ^:export register []
