@@ -33,7 +33,8 @@
 ;; %1 is original property value, %2 is the new value.
 ;; Examples:
 ;;    #(do %2)              ;; just replaces old value.
-;;    #(.parse js/JSON %2)  ;; parses JSON into JS object
+;;    #(.parse js/JSON %2)  ;; par33ses JSON into JS object
+;;    #(= "true" %2)        ;; parses boolean
 ;; This list's keys must match the 'attrs' list.
 (def fns {"some-text" #(do %2)})
 
