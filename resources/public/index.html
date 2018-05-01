@@ -2,14 +2,19 @@
     <body>
         <script src="js/element.js"></script>                               <!-- load custom element script -->
         <script>kundel.element.register()</script>                          <!-- register custom element -->
-        <my-element id="my-event-catcher" some-text="foo bar baz"></my-element>  <!-- use custom element -->
+        <div id="my-event-catcher" some-text="foo bar baz"></div>           <!-- we'd use custom element if Edge
+                                                                                 worked (e.g <my-element>..)-->
     </body>
     <script>
         var catcher = document.getElementById('my-event-catcher');               /* listen to custom element event */
+        kundel.element.created(catcher);                                         /* For Edge: can't just have <my-element> */
         console.log("catching on :: " + catcher);
         catcher.addEventListener('my-event', function(e) {
                 alert("custom listener :: " + e.detail);
-                catcher.setAttribute('some-text', "new value");
+                catcher.setAttribute('some-text', "new value");                  /* With w3c custom element this would
+                                                                                    work.  For Edge we need to explicitly
+                                                                                    call the method below... */
+                kundel.element.changed(catcher, 'some-text', null, 'new value'); /* For Edge: explicitly change attribute */
             }, true);
     </script>
 </html>
