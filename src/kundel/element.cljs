@@ -35,7 +35,7 @@
 ;; Examples:
 ;;    #(do %2)              ;; just replaces old value.
 ;;    #(.parse js/JSON %2)  ;; par33ses JSON into JS object
-;;    #(= "true" %2)        ;; parses boolean
+;;    #(= "true" (str %2))  ;; parses boolean
 ;; This list's keys must match the 'attrs' list.
 (def fns {"some-text" #(do %2)})
 
@@ -52,7 +52,7 @@
   (let [_attrs (ctor-attrs)]
     (doseq [keyval _attrs]
       (swap! (val keyval) (get fns (key keyval)) (.getAttribute this (key keyval))))
-    (swap! attrs (merge @attrs {this _attrs}))
+    (reset! attrs (merge @attrs {this _attrs}))
     (r/render [c/render this _attrs] this)))      ;; attach reagent component
 
 (defn attached [this]) ;; not wired into reagent component
@@ -63,7 +63,7 @@
 (defn ^:export changed [this property-name old-value new-value]
   (when-let [_attrs (get @attrs this)]
     (swap! (get _attrs property-name) (get fns property-name) new-value)
-    (swap! attrs (merge @attrs {this _attrs}))))
+    (reset! attrs (merge @attrs {this _attrs}))))
 
 ;; register the w3c custom element.
 (defn ^:export register []
